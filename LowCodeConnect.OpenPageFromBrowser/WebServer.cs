@@ -45,7 +45,8 @@ namespace LowCodeConnect.OpenPageFromBrowser
             _logService = logService;
             _currentApp = currentApp;
             _dockingWindowsService = dockingWindowService;
-            messageBoxService.ShowInformation("Extension is installed. If you never did this before, create a shortcut in your browser with this javascript (see copy details)", "(function(){ var pageTitle = mx.ui.getContentForm().path.replace('.page.xml', '');  var pageTitleArr = pageTitle.split('/');  var moduleName = pageTitleArr[0];  var pageName = pageTitleArr[1];  fetch(\"http://localhost:8387/\" + moduleName + \".\" + pageName);})();");
+            messageBoxService.ShowInformation("Extension is installed. Create a shortcut in your browser with this javascript (see copy details)",
+                "javascript:(function(){ fetch(\"http://localhost:8387/\" + mx.ui.getContentForm().path);})();");
 
             if (!_isRunning)
             {
@@ -100,11 +101,14 @@ namespace LowCodeConnect.OpenPageFromBrowser
                 // remove the first '/'
                 OpenDocumentEditor(request.Url.AbsolutePath.ToString().Substring(1));
                 HttpListenerResponse response = context.Response;
-                //string responseString = "";
-                //byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+                response.AddHeader("Access-Control-Allow-Origin", "*");
+                response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+                response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+                string responseString = "";
+                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 
-                //response.ContentLength64 = buffer.Length;
-                //response.OutputStream.Write(buffer, 0, buffer.Length);
+                response.ContentLength64 = buffer.Length;
+                response.OutputStream.Write(buffer, 0, buffer.Length);
                 response.OutputStream.Close();
             }
         }
@@ -113,16 +117,23 @@ namespace LowCodeConnect.OpenPageFromBrowser
         {
             if (docQualName != null && this._currentApp != null && _dockingWindowsService != null && docQualName != null && docQualName.Length >= 3 && docQualName.Contains('.'))
             {
-                string[] docSplit = docQualName.Split('.');
-                string moduleName = docSplit[0];
-                string docName = docSplit[1];
-                if (GetModuleFromDocument(moduleName, this._currentApp) is IModule module)
+                string[] docSplit = docQualName.Split('/');
+                if (docSplit.Length == 2)
                 {
-                    IDocument? docExists = GetDocumentFromModule(module, docName);
-                    if (docExists != null)
+                    string moduleName = docSplit[0];
+                    string docName = docSplit[1]?.Replace(".page.xml", "");
+                    if (GetModuleFromDocument(moduleName, this._currentApp) is IModule module)
                     {
-                        _dockingWindowsService.TryOpenEditor(docExists);
+                        IDocument? docExists = GetDocumentFromModule(module, docName);
+                        if (docExists != null)
+                        {
+                            _dockingWindowsService.TryOpenEditor(docExists);
+                        }
                     }
+                }
+                else
+                {
+                    _logService?.Info("Invalid request received " + docQualName);
                 }
             }
         }
