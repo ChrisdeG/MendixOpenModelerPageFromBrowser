@@ -11,10 +11,10 @@ namespace LowCodeConnect.OpenPageFromBrowser
     public sealed class BackgroundHttpServer
     {
         private static readonly Lazy<BackgroundHttpServer> _instance =
-            new Lazy<BackgroundHttpServer>(() => new BackgroundHttpServer());
+            new(() => new BackgroundHttpServer());
 
         private readonly HttpListener _listener;
-        private CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _cts;
         private bool _isRunning;
         private IModel? _currentApp;
         private IDockingWindowService? _dockingWindowsService;
@@ -35,7 +35,7 @@ namespace LowCodeConnect.OpenPageFromBrowser
 
         public static BackgroundHttpServer Instance => _instance.Value;
 
-        public void setCurrentApp(IModel? currentApp)
+        public void SetCurrentApp(IModel? currentApp)
         {
             _currentApp = currentApp;
         }
@@ -99,13 +99,13 @@ namespace LowCodeConnect.OpenPageFromBrowser
             if (request != null && request.Url != null && request.Url.AbsolutePath != null)
             {
                 // remove the first '/'
-                OpenDocumentEditor(request.Url.AbsolutePath.ToString().Substring(1));
+                OpenDocumentEditor(request.Url.AbsolutePath.ToString()[1..]);
                 HttpListenerResponse response = context.Response;
                 response.AddHeader("Access-Control-Allow-Origin", "*");
                 response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
                 response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
-                string responseString = "";
-                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+                response.StatusCode = (int)HttpStatusCode.OK;
+                byte[] buffer = [];
 
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -121,8 +121,8 @@ namespace LowCodeConnect.OpenPageFromBrowser
                 if (docSplit.Length == 2)
                 {
                     string moduleName = docSplit[0];
-                    string docName = docSplit[1]?.Replace(".page.xml", "");
-                    if (GetModuleFromDocument(moduleName, this._currentApp) is IModule module)
+                    string? docName = docSplit[1]?.Replace(".page.xml", "");
+                    if (docName != null && GetModuleFromDocument(moduleName) is IModule module)
                     {
                         IDocument? docExists = GetDocumentFromModule(module, docName);
                         if (docExists != null)
@@ -138,7 +138,7 @@ namespace LowCodeConnect.OpenPageFromBrowser
             }
         }
 
-        public IDocument? GetDocumentFromModule(IModule module, string documentName)
+        public static IDocument? GetDocumentFromModule(IModule module, string documentName)
         {
             IDocument? document = module.GetDocuments()
                 .Where(doc => doc.Name == documentName)
@@ -147,19 +147,19 @@ namespace LowCodeConnect.OpenPageFromBrowser
             if (document != null)
             {
                 return document;
-            } 
+            }
 
             foreach (var folder in module.GetFolders())
+            {
+                IDocument? returnDoc = GetDocumentFromFolder(folder, documentName);
+                if (returnDoc != null)
                 {
-                    IDocument? returnDoc = GetDocumentFromFolder(folder, documentName);
-                    if (returnDoc != null)
-                    {
-                        return returnDoc;
-                    }
+                    return returnDoc;
                 }
+            }
             return null;
         }
-        public IModule? GetModuleFromDocument(string docQualName, IModel currentApp)
+        public IModule? GetModuleFromDocument(string docQualName)
         {
             if (_currentApp == null)
                 return null;
@@ -171,7 +171,7 @@ namespace LowCodeConnect.OpenPageFromBrowser
             return module;
         }
 
-        public IDocument? GetDocumentFromFolder(IFolder folder, string documentName)
+        public static IDocument? GetDocumentFromFolder(IFolder folder, string documentName)
         {
             return folder.GetDocuments()
                          .FirstOrDefault(doc => doc.Name == documentName);

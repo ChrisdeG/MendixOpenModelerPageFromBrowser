@@ -3,21 +3,18 @@ using Mendix.StudioPro.ExtensionsAPI.UI.Events;
 using Mendix.StudioPro.ExtensionsAPI.UI.Menu;
 using Mendix.StudioPro.ExtensionsAPI.UI.Services;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 
 namespace LowCodeConnect.OpenPageFromBrowser
 {
     [Export(typeof(MenuExtension))]
-    public class MyMenuExtension: MenuExtension
+    public class OpenPageMenuExtension: MenuExtension
     {
-
-        //Server? server;
         private readonly IDockingWindowService dockingWindowService;
         private readonly ILogService logService;
         private readonly IMessageBoxService messageBoxService;
 
         [ImportingConstructor]
-        public MyMenuExtension(IDockingWindowService dockingWindowService, ILogService logService, IMessageBoxService messageBoxService)
+        public OpenPageMenuExtension(IDockingWindowService dockingWindowService, ILogService logService, IMessageBoxService messageBoxService)
         {
             Subscribe<ExtensionLoaded>(OnExtensionLoaded);
             Subscribe<ExtensionUnloading>(OnExtensionUnloading);
@@ -46,7 +43,7 @@ namespace LowCodeConnect.OpenPageFromBrowser
         {
             if (CurrentApp != null)
             {
-                BackgroundHttpServer.Instance.setCurrentApp(CurrentApp);
+                BackgroundHttpServer.Instance.SetCurrentApp(CurrentApp);
             }
         }    
     }
