@@ -146,49 +146,35 @@ namespace LowCodeConnect.OpenPageFromBrowser
 
             if (document != null)
             {
-                _logService?.Info("document found: " + document.Name);
                 return document;
-            }
+            } 
 
             foreach (var folder in module.GetFolders())
-            {
-                IDocument? returnDoc = GetDocumentFromFolder(folder, documentName);
-                if (returnDoc != null)
                 {
-                    return returnDoc;
+                    IDocument? returnDoc = GetDocumentFromFolder(folder, documentName);
+                    if (returnDoc != null)
+                    {
+                        return returnDoc;
+                    }
                 }
-            }
             return null;
         }
         public IModule? GetModuleFromDocument(string docQualName, IModel currentApp)
         {
-            if (_currentApp != null)
-            {
-                string[] docSplit = docQualName.Split('.');
-                string moduleName = docSplit[0];
-                IReadOnlyList<IModule> allModules = _currentApp.Root.GetModules();
-                foreach (IModule module in allModules)
-                {
-                    if (module.Name == moduleName)
-                    {
-                        return module;
-                    }
-                }
-            }
-            return null;
+            if (_currentApp == null)
+                return null;
+
+            var moduleName = docQualName.Split('.')[0];
+            var module = _currentApp.Root.GetModules()
+                .FirstOrDefault(m => m.Name == moduleName);
+
+            return module;
         }
 
         public IDocument? GetDocumentFromFolder(IFolder folder, string documentName)
         {
-            IReadOnlyList<IDocument> allDocs = folder.GetDocuments();
-            foreach (IDocument document in allDocs)
-            {
-                if (document.Name == documentName)
-                {
-                    return document;
-                }
-            }
-            return null;
+            return folder.GetDocuments()
+                         .FirstOrDefault(doc => doc.Name == documentName);
         }
     }
 }

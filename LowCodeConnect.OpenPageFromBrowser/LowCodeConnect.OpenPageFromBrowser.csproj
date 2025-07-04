@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mendix.StudioPro.ExtensionsAPI" Version="10.12.11" />
+    <PackageReference Include="Mendix.StudioPro.ExtensionsAPI" Version="10.18.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y /s /i &quot;$(TargetDir)&quot; &quot;C:\Users\chris\Documents\Mendix\ExtensionsModeler\MendixApp1012\extensions\LowCodeConnect.OpenPageFromBrowser&quot;" />
+    <Exec Command="xcopy /y /s /i &quot;$(TargetDir)&quot; &quot;C:\Users\chris\Documents\Mendix\ExtensionsModeler\MendixApp1018\extensions\LowCodeConnect.OpenPageFromBrowser&quot;" />
   </Target>
+
+
 
 </Project>
